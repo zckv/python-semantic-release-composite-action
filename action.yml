@@ -162,14 +162,17 @@ runs:
         set -ex
         export ARGS=""
         echo "$INPUT_COMMIT"
-        ARGS+=("$(eval_boolean_action_input "prerelease" "$INPUT_PRERELEASE" "--as-prerelease" "")") || exit 1
-        ARGS+=("$(eval_boolean_action_input "commit" "$INPUT_COMMIT" "--commit" "--no-commit")") || exit 1
+        echo "$INPUT_TAG"
+        [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--as-prerelease" || ARGS+=""
+        [ -z "$INPUT_COMMIT" ] && ARGS+="--commit" || ARGS+="--no_commit"
 
-        ARGS+=("$(eval_boolean_action_input "tag" "$INPUT_TAG" "--tag" "--no-tag")") || exit 1
-        ARGS+=("$(eval_boolean_action_input "push" "$INPUT_PUSH" "--push" "--no-push")") || exit 1
-        ARGS+=("$(eval_boolean_action_input "changelog" "$INPUT_CHANGELOG" "--changelog" "--no-changelog")") || exit 1
-        ARGS+=("$(eval_boolean_action_input "vcs_release" "$INPUT_VCS_RELEASE" "--vcs-release" "--no-vcs-release")") || exit 1
-        ARGS+=("$(eval_boolean_action_input "build" "$INPUT_BUILD" "" "--skip-build")") || exit 1
+        [ -z "$INPUT_" ] && ARGS+="" || ARGS+=""
+
+        [ -z "$INPUT_TAG" ] && ARGS+="--tag" || ARGS+="--no-tag"
+        [ -z "$INPUT_PUSH" ] && ARGS+="--push" || ARGS+="--no-push"
+        [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog" || ARGS+="--no-changelog"
+        [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release" || ARGS+="--no-vcs-release"
+        [ -z "$INPUT_BUILD" ] && ARGS+="" || ARGS+="--skip-build"
 
         force_levels=("prerelease" "patch" "minor" "major")
         if [ -z "$INPUT_FORCE" ]; then
