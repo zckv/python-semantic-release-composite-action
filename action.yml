@@ -154,6 +154,7 @@ runs:
           pip install "python-semantic-release==$INPUT_PSR_VERSION"
         fi
       shell: bash
-    - run: action.sh
+    - name: Launch PSR action script
+      run: ./action.sh
       id: semrel
       shell: bash
