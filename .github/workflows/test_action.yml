@@ -21,4 +21,5 @@ jobs:
         with:
           root_options: -v
           directory: ./pyproject
+          commit: false
           psr_version: 8.3.0
