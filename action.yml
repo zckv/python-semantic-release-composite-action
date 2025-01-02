@@ -159,7 +159,18 @@ runs:
       id: semrel
       shell: bash
       run: |
-        export PSR_ARGS=""
+        set -eux
+        export ARGS=""
+        echo "$INPUT_COMMIT"
+        ARGS+=("$(eval_boolean_action_input "prerelease" "$INPUT_PRERELEASE" "--as-prerelease" "")") || exit 1
+        ARGS+=("$(eval_boolean_action_input "commit" "$INPUT_COMMIT" "--commit" "--no-commit")") || exit 1
+
+        ARGS+=("$(eval_boolean_action_input "tag" "$INPUT_TAG" "--tag" "--no-tag")") || exit 1
+        ARGS+=("$(eval_boolean_action_input "push" "$INPUT_PUSH" "--push" "--no-push")") || exit 1
+        ARGS+=("$(eval_boolean_action_input "changelog" "$INPUT_CHANGELOG" "--changelog" "--no-changelog")") || exit 1
+        ARGS+=("$(eval_boolean_action_input "vcs_release" "$INPUT_VCS_RELEASE" "--vcs-release" "--no-vcs-release")") || exit 1
+        ARGS+=("$(eval_boolean_action_input "build" "$INPUT_BUILD" "" "--skip-build")") || exit 1
+
         force_levels=("prerelease" "patch" "minor" "major")
         if [ -z "$INPUT_FORCE" ]; then
           true # do nothing if 'force' input is not set
@@ -244,4 +255,4 @@ runs:
         export GH_TOKEN="${INPUT_GITHUB_TOKEN}"
 
         source ~/semantic-release/.venv/bin/activate
-        semantic-release $INPUT_ROOT_OPTIONS version ${PSR_ARGS[*]}
+        semantic-release $INPUT_ROOT_OPTIONS version ${ARGS[*]}
