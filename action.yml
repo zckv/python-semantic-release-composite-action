@@ -159,7 +159,7 @@ runs:
       id: semrel
       shell: bash
       run: |
-        set -eux
+        set -ex
         export ARGS=""
         echo "$INPUT_COMMIT"
         ARGS+=("$(eval_boolean_action_input "prerelease" "$INPUT_PRERELEASE" "--as-prerelease" "")") || exit 1

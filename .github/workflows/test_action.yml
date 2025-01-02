@@ -22,4 +22,5 @@ jobs:
           root_options: -v
           directory: ./pyproject
           commit: false
+          tag: true
           psr_version: 8.3.0
