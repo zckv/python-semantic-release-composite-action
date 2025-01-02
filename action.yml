@@ -204,7 +204,7 @@ runs:
         # git config --system --add safe.directory "*"
 
         if (
-          [[n "$INPUT_SSH_PUBLIC_SIGNING_KEY" &&
+          [[ -n "$INPUT_SSH_PUBLIC_SIGNING_KEY" &&
           -n "$INPUT_SSH_PRIVATE_SIGNING_KEY" ]]
         );
         then
@@ -243,4 +243,4 @@ runs:
         # Copy inputs into correctly-named environment variables
         export GH_TOKEN="${INPUT_GITHUB_TOKEN}"
 
-        semantic-release $INPUT_ROOT_OPTIONS version ${ARGS[*]}"
+        semantic-release "$INPUT_ROOT_OPTIONS" version "${PSR_ARGS[*]}"
