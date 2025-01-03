@@ -136,11 +136,11 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
-      shell: bash
     - name: Prepare PSR environment
+      env:
+        INPUT_PSR_VERSION: ${{ inputs.psr_version }}
       run: |
-        set -ex
+        set -eux
         if ! command -v python $> /dev/null
         then
           echo "Python not found."
@@ -158,8 +158,26 @@ runs:
     - name: PSR action script
       id: semrel
       shell: bash
+      env:
+        INPUT_ROOT_OPTIONS: ${{ inputs.root_options }}
+        INPUT_DIRECTORY: ${{ inputs.directory }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+        INPUT_GIT_COMMITTER_NAME: ${{ inputs.git_committer_name }}
+        INPUT_GIT_COMMITTER_EMAIL: ${{ inputs.git_committer_email }}
+        INPUT_SSH_PUBLIC_SIGNING_KEY: ${{ inputs.ssh_public_signing_key }}
+        INPUT_SSH_PRIVATE_SIGNING_KEY: ${{ inputs.ssh_private_signing_key }}
+        INPUT_PRERELEASE: ${{ inputs.prerelease }}
+        INPUT_PRERELEASE_TOKEN: ${{ inputs.prerelease_token }}
+        INPUT_FORCE: ${{ inputs.force }}
+        INPUT_COMMIT: ${{ inputs.commit }}
+        INPUT_TAG: ${{ inputs.tag }}
+        INPUT_PUSH: ${{ inputs.push }}
+        INPUT_CHANGELOG: ${{ inputs.changelog }}
+        INPUT_VCS_RELEASE: ${{ inputs.vcs_release }}
+        INPUT_BUILD: ${{ inputs.build }}
+        INPUT_BUILD_METADATA: ${{ inputs.build_metadata }}
       run: |
-        set -ex
+        set -eux
         export ARGS=""
         [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--as-prerelease " || ARGS+=""
         [ -z "$INPUT_COMMIT" ] && ARGS+="--commit " || ARGS+="--no_commit "
@@ -176,14 +194,14 @@ runs:
         elif
           echo '%s\0' "${force_levels[@]}" | grep -Fxzq "$INPUT_FORCE"
         then
-          ARGS+=("--$INPUT_FORCE")
+          ARGS+="--$INPUT_FORCE "
         else
           echo "Error: Input 'force' must be one of: %s" >&2
           echo "${force_levels[@]}" >&2
         fi
 
         if [ -n "$INPUT_BUILD_METADATA" ]; then
-              ARGS+=("--build-metadata $INPUT_BUILD_METADATA")
+              ARGS+="--build-metadata $INPUT_BUILD_METADATA "
         fi
 
         if [ -n "$INPUT_PRERELEASE_TOKEN" ]; then
