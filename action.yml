@@ -161,18 +161,14 @@ runs:
       run: |
         set -ex
         export ARGS=""
-        echo "$INPUT_COMMIT"
-        echo "$INPUT_TAG"
-        [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--as-prerelease" || ARGS+=""
-        [ -z "$INPUT_COMMIT" ] && ARGS+="--commit" || ARGS+="--no_commit"
+        [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--as-prerelease " || ARGS+=""
+        [ -z "$INPUT_COMMIT" ] && ARGS+="--commit " || ARGS+="--no_commit "
 
-        [ -z "$INPUT_" ] && ARGS+="" || ARGS+=""
-
-        [ -z "$INPUT_TAG" ] && ARGS+="--tag" || ARGS+="--no-tag"
-        [ -z "$INPUT_PUSH" ] && ARGS+="--push" || ARGS+="--no-push"
-        [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog" || ARGS+="--no-changelog"
-        [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release" || ARGS+="--no-vcs-release"
-        [ -z "$INPUT_BUILD" ] && ARGS+="" || ARGS+="--skip-build"
+        [ -z "$INPUT_TAG" ] && ARGS+="--tag " || ARGS+="--no-tag "
+        [ -z "$INPUT_PUSH" ] && ARGS+="--push " || ARGS+="--no-push "
+        [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog " || ARGS+="--no-changelog "
+        [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+        [ -z "$INPUT_BUILD" ] && ARGS+="" || ARGS+="--skip-build "
 
         force_levels=("prerelease" "patch" "minor" "major")
         if [ -z "$INPUT_FORCE" ]; then
@@ -258,4 +254,4 @@ runs:
         export GH_TOKEN="${INPUT_GITHUB_TOKEN}"
 
         source ~/semantic-release/.venv/bin/activate
-        semantic-release $INPUT_ROOT_OPTIONS version ${ARGS[*]}
+        semantic-release $INPUT_ROOT_OPTIONS version $ARGS[*]
