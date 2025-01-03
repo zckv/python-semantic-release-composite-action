@@ -254,4 +254,4 @@ runs:
         export GH_TOKEN="${INPUT_GITHUB_TOKEN}"
 
         source ~/semantic-release/.venv/bin/activate
-        semantic-release $INPUT_ROOT_OPTIONS version $ARGS[*]
+        semantic-release $INPUT_ROOT_OPTIONS version $ARGS
