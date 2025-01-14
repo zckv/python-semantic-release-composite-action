@@ -180,7 +180,7 @@ runs:
         set -eux
         export ARGS=""
         [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--as-prerelease " || ARGS+=""
-        [ -z "$INPUT_COMMIT" ] && ARGS+="--commit " || ARGS+="--no_commit "
+        [ -z "$INPUT_COMMIT" ] && ARGS+="--commit " || ARGS+="--no-commit "
 
         [ -z "$INPUT_TAG" ] && ARGS+="--tag " || ARGS+="--no-tag "
         [ -z "$INPUT_PUSH" ] && ARGS+="--push " || ARGS+="--no-push "
