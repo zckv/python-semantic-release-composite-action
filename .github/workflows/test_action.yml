@@ -22,6 +22,7 @@ jobs:
           path: ./pyproject
       - uses: ./action
         with:
+          github_token: ${{ secrets.PAT_TOKEN }}
           root_options: -v
           directory: ./pyproject
           commit: false

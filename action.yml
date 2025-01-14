@@ -176,37 +176,65 @@ runs:
         INPUT_VCS_RELEASE: ${{ inputs.vcs_release }}
         INPUT_BUILD: ${{ inputs.build }}
         INPUT_BUILD_METADATA: ${{ inputs.build_metadata }}
+        INPUT_PSR_VERSION: ${{ inputs.psr_version }}
       run: |
         set -eux
         export ARGS=""
-        [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--as-prerelease " || ARGS+=""
-        [ -z "$INPUT_COMMIT" ] && ARGS+="--commit " || ARGS+="--no-commit "
+        case $(echo "$INPUT_PSR_VERSION" | cut -d '.' -f1) in
+        "9")
+          [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--as-prerelease " || ARGS+=""
+          [ -z "$INPUT_COMMIT" ] && ARGS+="--commit " || ARGS+="--no-commit "
+          [ -z "$INPUT_TAG" ] && ARGS+="--tag " || ARGS+="--no-tag "
+          [ -z "$INPUT_PUSH" ] && ARGS+="--push " || ARGS+="--no-push "
+          [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog " || ARGS+="--no-changelog "
+          [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+          [ -z "$INPUT_BUILD" ] && ARGS+="" || ARGS+="--skip-build "
+          force_levels=("prerelease" "patch" "minor" "major")
+          if [ -z "$INPUT_FORCE" ]; then
+            true # do nothing if 'force' input is not set
+          elif
+            echo '%s\0' "${force_levels[@]}" | grep -Fxzq "$INPUT_FORCE"
+          then
+            ARGS+="--$INPUT_FORCE "
+          else
+            echo "Error: Input 'force' must be one of: %s" >&2
+            echo "${force_levels[@]}" >&2
+          fi
 
-        [ -z "$INPUT_TAG" ] && ARGS+="--tag " || ARGS+="--no-tag "
-        [ -z "$INPUT_PUSH" ] && ARGS+="--push " || ARGS+="--no-push "
-        [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog " || ARGS+="--no-changelog "
-        [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
-        [ -z "$INPUT_BUILD" ] && ARGS+="" || ARGS+="--skip-build "
+          if [ -n "$INPUT_BUILD_METADATA" ]; then
+                ARGS+="--build-metadata $INPUT_BUILD_METADATA "
+          fi
 
-        force_levels=("prerelease" "patch" "minor" "major")
-        if [ -z "$INPUT_FORCE" ]; then
-          true # do nothing if 'force' input is not set
-        elif
-          echo '%s\0' "${force_levels[@]}" | grep -Fxzq "$INPUT_FORCE"
-        then
-          ARGS+="--$INPUT_FORCE "
-        else
-          echo "Error: Input 'force' must be one of: %s" >&2
-          echo "${force_levels[@]}" >&2
-        fi
+          if [ -n "$INPUT_PRERELEASE_TOKEN" ]; then
+                ARGS+=("--prerelease-token $INPUT_PRERELEASE_TOKEN")
+          fi
+          ;;
+        "8")
+          [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--prerelease " || ARGS+=""
+          [ -z "$INPUT_COMMIT" ] && ARGS+="--commit " || ARGS+="--no-commit "
+          [ -z "$INPUT_TAG" ] && ARGS+="--tag " || ARGS+="--no-tag "
+          [ -z "$INPUT_PUSH" ] && ARGS+="--push " || ARGS+="--no-push "
+          [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog " || ARGS+="--no-changelog "
+          [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+          [ -z "$INPUT_BUILD" ] && ARGS+="" || ARGS+="--skip-build "
+          force_levels=("patch" "minor" "major")
+          if [ -z "$INPUT_FORCE" ]; then
+            true # do nothing if 'force' input is not set
+          elif
+            echo '%s\0' "${force_levels[@]}" | grep -Fxzq "$INPUT_FORCE"
+          then
+            ARGS+="--$INPUT_FORCE "
+          else
+            echo "Error: Input 'force' must be one of: %s" >&2
+            echo "${force_levels[@]}" >&2
+          fi
 
-        if [ -n "$INPUT_BUILD_METADATA" ]; then
-              ARGS+="--build-metadata $INPUT_BUILD_METADATA "
-        fi
+          if [ -n "$INPUT_BUILD_METADATA" ]; then
+                ARGS+="--build-metadata $INPUT_BUILD_METADATA "
+          fi
+          ;;
+        esac
 
-        if [ -n "$INPUT_PRERELEASE_TOKEN" ]; then
-              ARGS+=("--prerelease-token $INPUT_PRERELEASE_TOKEN")
-        fi
 
         # Change to configured directory
         cd "${INPUT_DIRECTORY}"
