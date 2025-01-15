@@ -116,13 +116,6 @@ inputs:
     description: |
       Pin python-semantic-release version to a specific value
 
-  noop:
-    type: boolean
-    required: false
-    default: false
-    description: If true, no operation is made. This is a debug utility.
-
-
 outputs:
   is_prerelease:
     description: |
@@ -185,7 +178,6 @@ runs:
         INPUT_BUILD: ${{ inputs.build }}
         INPUT_BUILD_METADATA: ${{ inputs.build_metadata }}
         INPUT_PSR_VERSION: ${{ inputs.psr_version }}
-        INPUT_NOOP: ${{ inputs.noop }}
       run: |
         bool() {
           input="$1"
@@ -210,7 +202,6 @@ runs:
           bool "$INPUT_CHANGELOG" && ARGS+="--changelog " || ARGS+="--no-changelog "
           bool "$INPUT_VCS_RELEASE" && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
           bool "$INPUT_BUILD" && ARGS+="" || ARGS+="--skip-build "
-          bool "$INPUT_NOOP" && ARGS+="--noop " || ARGS+=""
           force_levels=("prerelease" "patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
@@ -237,14 +228,13 @@ runs:
           bool "$INPUT_PUSH" && ARGS+="--push " || ARGS+="--no-push "
           bool "$INPUT_CHANGELOG" && ARGS+="--changelog " || ARGS+="--no-changelog "
           bool "$INPUT_VCS_RELEASE" && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
-          bool "$INPUT_NOOP" && ARGS+="--noop " || ARGS+=""
           force_levels=("patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
           elif
             echo '%s\0' "${force_levels[@]}" | grep -Fxzq "$INPUT_FORCE"
           then
-            ARGS+="--$INPUT_FORCE "
+            args+="--$input_force "
           else
             echo "Error: Input 'force' must be one of: %s" >&2
             echo "${force_levels[@]}" >&2

@@ -23,9 +23,8 @@ jobs:
       - uses: ./action
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
-          root_options: -v
+          root_options: -v --noop
           directory: ./pyproject
           commit: false
           tag: true
           psr_version: 8.3.0
-          noop: true
