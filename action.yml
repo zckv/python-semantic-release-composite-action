@@ -116,6 +116,11 @@ inputs:
     description: |
       Pin python-semantic-release version to a specific value
 
+  noop:
+    type: boolean
+    required: false
+    description: If true, no operation is made. This is a debug utility.
+
 outputs:
   is_prerelease:
     description: |
@@ -177,6 +182,7 @@ runs:
         INPUT_BUILD: ${{ inputs.build }}
         INPUT_BUILD_METADATA: ${{ inputs.build_metadata }}
         INPUT_PSR_VERSION: ${{ inputs.psr_version }}
+        INPUT_NOOP: ${{ inputs.noop }}
       run: |
         set -eux
         export ARGS=""
@@ -189,6 +195,7 @@ runs:
           [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog " || ARGS+="--no-changelog "
           [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
           [ -z "$INPUT_BUILD" ] && ARGS+="" || ARGS+="--skip-build "
+          [ -z "$INPUT_NOOP" ] && ARGS+="--noop " || ARGS+=""
           force_levels=("prerelease" "patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
@@ -215,6 +222,7 @@ runs:
           [ -z "$INPUT_PUSH" ] && ARGS+="--push " || ARGS+="--no-push "
           [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog " || ARGS+="--no-changelog "
           [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+          [ -z "$INPUT_NOOP" ] && ARGS+="--noop " || ARGS+=""
           force_levels=("patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
