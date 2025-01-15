@@ -26,5 +26,7 @@ jobs:
           root_options: -v --noop
           directory: ./pyproject
           commit: false
-          tag: true
+          push: false
+          changelog: false
+          vcs_release: false
           psr_version: 8.7.0
