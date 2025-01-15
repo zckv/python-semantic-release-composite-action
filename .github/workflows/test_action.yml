@@ -18,6 +18,8 @@ jobs:
           path: ./action
       - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
           repository: zckv/semantic-versioning-example
           path: ./pyproject
       - uses: ./action
