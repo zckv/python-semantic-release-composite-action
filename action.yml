@@ -212,11 +212,9 @@ runs:
         "8")
           [ -z "$INPUT_PRERELEASE" ]  && ARGS+="--prerelease " || ARGS+=""
           [ -z "$INPUT_COMMIT" ] && ARGS+="--commit " || ARGS+="--no-commit "
-          [ -z "$INPUT_TAG" ] && ARGS+="--tag " || ARGS+="--no-tag "
           [ -z "$INPUT_PUSH" ] && ARGS+="--push " || ARGS+="--no-push "
           [ -z "$INPUT_CHANGELOG" ] && ARGS+="--changelog " || ARGS+="--no-changelog "
           [ -z "$INPUT_VCS_RELEASE" ] && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
-          [ -z "$INPUT_BUILD" ] && ARGS+="" || ARGS+="--skip-build "
           force_levels=("patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
