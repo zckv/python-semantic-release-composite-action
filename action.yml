@@ -119,7 +119,9 @@ inputs:
   noop:
     type: boolean
     required: false
+    default: false
     description: If true, no operation is made. This is a debug utility.
+
 
 outputs:
   is_prerelease:
@@ -187,11 +189,11 @@ runs:
       run: |
         bool() {
           input="$1"
-          if [ -z "$flag_value" ]; then
+          if [ -z "$input" ]; then
             return 0
-          elif [ "$flag_value" = "true" ]; then
+          elif [ "$input" = "true" ]; then
             return 0
-          elif [ "$flag_value" = "false" ]; then
+          elif [ "$input" = "false" ]; then
             return 1
           else
             return 1
@@ -201,14 +203,14 @@ runs:
         export ARGS=""
         case $(echo "$INPUT_PSR_VERSION" | cut -d '.' -f1) in
         "9")
-          bool("$INPUT_PRERELEASE") && ARGS+="--as-prerelease " || ARGS+=""
-          bool("$INPUT_COMMIT") && ARGS+="--commit " || ARGS+="--no-commit "
-          bool("$INPUT_TAG") && ARGS+="--tag " || ARGS+="--no-tag "
-          bool("$INPUT_PUSH") && ARGS+="--push " || ARGS+="--no-push "
-          bool("$INPUT_CHANGELOG") && ARGS+="--changelog " || ARGS+="--no-changelog "
-          bool("$INPUT_VCS_RELEASE") && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
-          bool("$INPUT_BUILD") && ARGS+="" || ARGS+="--skip-build "
-          bool("$INPUT_NOOP") && ARGS+="--noop " || ARGS+=""
+          bool "$INPUT_PRERELEASE" && ARGS+="--as-prerelease " || ARGS+=""
+          bool "$INPUT_COMMIT" && ARGS+="--commit " || ARGS+="--no-commit "
+          bool "$INPUT_TAG" && ARGS+="--tag " || ARGS+="--no-tag "
+          bool "$INPUT_PUSH" && ARGS+="--push " || ARGS+="--no-push "
+          bool "$INPUT_CHANGELOG" && ARGS+="--changelog " || ARGS+="--no-changelog "
+          bool "$INPUT_VCS_RELEASE" && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+          bool "$INPUT_BUILD" && ARGS+="" || ARGS+="--skip-build "
+          bool "$INPUT_NOOP" && ARGS+="--noop " || ARGS+=""
           force_levels=("prerelease" "patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
@@ -230,12 +232,12 @@ runs:
           fi
           ;;
         "8")
-          bool("$INPUT_PRERELEASE")  && ARGS+="--prerelease " || ARGS+=""
-          bool( "$INPUT_COMMIT") && ARGS+="--commit " || ARGS+="--no-commit "
-          bool( "$INPUT_PUSH") && ARGS+="--push " || ARGS+="--no-push "
-          bool( "$INPUT_CHANGELOG") && ARGS+="--changelog " || ARGS+="--no-changelog "
-          bool( "$INPUT_VCS_RELEASE") && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
-          bool( "$INPUT_NOOP") && ARGS+="--noop " || ARGS+=""
+          bool "$INPUT_PRERELEASE"  && ARGS+="--prerelease " || ARGS+=""
+          bool "$INPUT_COMMIT" && ARGS+="--commit " || ARGS+="--no-commit "
+          bool "$INPUT_PUSH" && ARGS+="--push " || ARGS+="--no-push "
+          bool "$INPUT_CHANGELOG" && ARGS+="--changelog " || ARGS+="--no-changelog "
+          bool "$INPUT_VCS_RELEASE" && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+          bool "$INPUT_NOOP" && ARGS+="--noop " || ARGS+=""
           force_levels=("patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
