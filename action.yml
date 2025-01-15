@@ -1,0 +1,316 @@
+---
+name: Python Semantic Release Composite Action
+
+description: |
+  Automated Releases via SemVer and Commit Message Conventions.
+  Most of this file is copied from PSR official repository:
+  https://github.com/python-semantic-release/python-semantic-release
+
+branding:
+  color: orange
+
+inputs:
+  root_options:
+    default: "-v"
+    required: false
+    description: |
+      Additional options for the main command. Example: -vv --noop
+
+  directory:
+    default: "."
+    required: false
+    description: Sub-directory to cd into before running semantic-release
+
+  github_token:
+    type: string
+    required: true
+    description: GitHub token used to push release notes and new commits/tags
+
+  git_committer_name:
+    type: string
+    required: false
+    description: The human name for the “committer” field
+
+  git_committer_email:
+    type: string
+    required: false
+    description: The email address for the “committer” field
+
+  ssh_public_signing_key:
+    type: string
+    required: false
+    description: The ssh public key used to sign commits
+
+  ssh_private_signing_key:
+    type: string
+    required: false
+    description: The ssh private key used to sign commits
+
+  # `semantic-release version` command line options
+  prerelease:
+    type: boolean
+    required: false
+    description: |
+      Force the next version to be a prerelease. Set to "true" or "false".
+
+  prerelease_token:
+    type: string
+    required: false
+    description: |
+      Force the next version to use this prerelease token,
+      if it is a prerelease.
+
+  force:
+    type: string
+    required: false
+    description: |
+      Force the next version to be a major release. Must be set to
+      one of "prerelease", "patch", "minor", or "major".
+
+  commit:
+    type: boolean
+    required: false
+    description: Whether or not to commit changes locally. Defaults are handled
+      by python-semantic-release internal version command.
+
+  tag:
+    type: boolean
+    required: false
+    description: |
+      Whether or not to make a local version tag. Defaults are handled
+      by python-semantic-release internal version command.
+
+  push:
+    type: boolean
+    required: false
+    description: |
+      Whether or not to push local commits to the Git repository. See
+      the configuration page for defaults of `semantic-release version`
+      for how the default is determined between push, tag, & commit.
+
+  changelog:
+    type: boolean
+    required: false
+    description: |
+      Whether or not to update the changelog.
+
+  vcs_release:
+    type: boolean
+    required: false
+    description: |
+      Whether or not to create a release in the remote VCS, if supported
+
+  build:
+    type: boolean
+    required: false
+    description: |
+      Whether or not to run the build_command for the project. Defaults are
+      handled by python-semantic-release internal version command.
+
+  build_metadata:
+    type: string
+    required: false
+    description: |
+      Build metadata to append to the new version
+
+  psr_version:
+    type: string
+    required: false
+    description: |
+      Pin python-semantic-release version to a specific value
+
+outputs:
+  is_prerelease:
+    description: |
+      "true" if the version is a prerelease, "false" otherwise
+
+  released:
+    description: |
+      "true" if a release was made, "false" otherwise
+
+  tag:
+    description: |
+      The Git tag corresponding to the version output
+
+  version:
+    description: |
+      The newly released version if one was made, otherwise the current version
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare PSR environment
+      env:
+        INPUT_PSR_VERSION: ${{ inputs.psr_version }}
+      run: |
+        set -eux
+        if ! command -v python $> /dev/null
+        then
+          echo "Python not found."
+          exit 1
+        fi
+        python -m venv ~/semantic-release/.venv
+        source ~/semantic-release/.venv/bin/activate
+        if [ -z "$INPUT_PSR_VERSION" ]
+        then
+          pip install python-semantic-release
+        else
+          pip install "python-semantic-release==$INPUT_PSR_VERSION"
+        fi
+      shell: bash
+    - name: PSR action script
+      id: semrel
+      shell: bash
+      env:
+        INPUT_ROOT_OPTIONS: ${{ inputs.root_options }}
+        INPUT_DIRECTORY: ${{ inputs.directory }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+        INPUT_GIT_COMMITTER_NAME: ${{ inputs.git_committer_name }}
+        INPUT_GIT_COMMITTER_EMAIL: ${{ inputs.git_committer_email }}
+        INPUT_SSH_PUBLIC_SIGNING_KEY: ${{ inputs.ssh_public_signing_key }}
+        INPUT_SSH_PRIVATE_SIGNING_KEY: ${{ inputs.ssh_private_signing_key }}
+        INPUT_PRERELEASE: ${{ inputs.prerelease }}
+        INPUT_PRERELEASE_TOKEN: ${{ inputs.prerelease_token }}
+        INPUT_FORCE: ${{ inputs.force }}
+        INPUT_COMMIT: ${{ inputs.commit }}
+        INPUT_TAG: ${{ inputs.tag }}
+        INPUT_PUSH: ${{ inputs.push }}
+        INPUT_CHANGELOG: ${{ inputs.changelog }}
+        INPUT_VCS_RELEASE: ${{ inputs.vcs_release }}
+        INPUT_BUILD: ${{ inputs.build }}
+        INPUT_BUILD_METADATA: ${{ inputs.build_metadata }}
+        INPUT_PSR_VERSION: ${{ inputs.psr_version }}
+      run: |
+        bool() {
+          input="$1"
+          if [ -z "$input" ]; then
+            return 0
+          elif [ "$input" = "true" ]; then
+            return 0
+          elif [ "$input" = "false" ]; then
+            return 1
+          else
+            return 1
+          fi
+        }
+        set -eux
+        export ARGS=""
+        case $(echo "$INPUT_PSR_VERSION" | cut -d '.' -f1) in
+        "9")
+          bool "$INPUT_PRERELEASE" && ARGS+="--as-prerelease " || ARGS+=""
+          bool "$INPUT_COMMIT" && ARGS+="--commit " || ARGS+="--no-commit "
+          bool "$INPUT_TAG" && ARGS+="--tag " || ARGS+="--no-tag "
+          bool "$INPUT_PUSH" && ARGS+="--push " || ARGS+="--no-push "
+          bool "$INPUT_CHANGELOG" && ARGS+="--changelog " || ARGS+="--no-changelog "
+          bool "$INPUT_VCS_RELEASE" && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+          bool "$INPUT_BUILD" && ARGS+="" || ARGS+="--skip-build "
+          force_levels=("prerelease" "patch" "minor" "major")
+          if [ -z "$INPUT_FORCE" ]; then
+            true # do nothing if 'force' input is not set
+          elif
+            echo '%s\0' "${force_levels[@]}" | grep -Fxzq "$INPUT_FORCE"
+          then
+            ARGS+="--$INPUT_FORCE "
+          else
+            echo "Error: Input 'force' must be one of: %s" >&2
+            echo "${force_levels[@]}" >&2
+          fi
+
+          if [ -n "$INPUT_BUILD_METADATA" ]; then
+                ARGS+="--build-metadata $INPUT_BUILD_METADATA "
+          fi
+
+          if [ -n "$INPUT_PRERELEASE_TOKEN" ]; then
+                ARGS+=("--prerelease-token $INPUT_PRERELEASE_TOKEN")
+          fi
+          ;;
+        "8")
+          bool "$INPUT_PRERELEASE"  && ARGS+="--prerelease " || ARGS+=""
+          bool "$INPUT_COMMIT" && ARGS+="--commit " || ARGS+="--no-commit "
+          bool "$INPUT_PUSH" && ARGS+="--push " || ARGS+="--no-push "
+          bool "$INPUT_CHANGELOG" && ARGS+="--changelog " || ARGS+="--no-changelog "
+          bool "$INPUT_VCS_RELEASE" && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+          force_levels=("patch" "minor" "major")
+          if [ -z "$INPUT_FORCE" ]; then
+            true # do nothing if 'force' input is not set
+          elif
+            echo '%s\0' "${force_levels[@]}" | grep -Fxzq "$INPUT_FORCE"
+          then
+            args+="--$input_force "
+          else
+            echo "Error: Input 'force' must be one of: %s" >&2
+            echo "${force_levels[@]}" >&2
+          fi
+
+          if [ -n "$INPUT_BUILD_METADATA" ]; then
+                ARGS+="--build-metadata $INPUT_BUILD_METADATA "
+          fi
+          ;;
+        esac
+
+
+        # Change to configured directory
+        cd "${INPUT_DIRECTORY}"
+
+        # Set Git details
+        if ! [ "${INPUT_GIT_COMMITTER_NAME:="-"}" = "-" ]; then
+          git config user.name "$INPUT_GIT_COMMITTER_NAME"
+        fi
+        if ! [ "${INPUT_GIT_COMMITTER_EMAIL:="-"}" = "-" ]; then
+          git config user.email "$INPUT_GIT_COMMITTER_EMAIL"
+        fi
+        if (
+          [ "${INPUT_GIT_COMMITTER_NAME:="-"}" != "-" ] &&
+          [ "${INPUT_GIT_COMMITTER_EMAIL:="-"}" != "-" ]
+          );
+        then
+          # Must export this value to the environment for PSR to consume the override
+          export GIT_COMMIT_AUTHOR="$INPUT_GIT_COMMITTER_NAME <$INPUT_GIT_COMMITTER_EMAIL>"
+        fi
+
+        # See https://github.com/actions/runner-images/issues/6775#issuecomment-1409268124
+        # and https://github.com/actions/runner-images/issues/6775#issuecomment-1410270956
+        # git config --system --add safe.directory "*"
+
+        if (
+          [[ -n "$INPUT_SSH_PUBLIC_SIGNING_KEY" &&
+          -n "$INPUT_SSH_PRIVATE_SIGNING_KEY" ]]
+        );
+        then
+          echo "SSH Key pair found, configuring signing..."
+
+          # Write keys to disk
+          mkdir -vp ~/.ssh
+          echo -e "$INPUT_SSH_PUBLIC_SIGNING_KEY" >>~/.ssh/signing_key.pub
+          cat ~/.ssh/signing_key.pub
+          echo -e "$INPUT_SSH_PRIVATE_SIGNING_KEY" >>~/.ssh/signing_key
+          # DO NOT CAT private key for security reasons
+          sha256sum ~/.ssh/signing_key
+          # Ensure read only private key
+          chmod 400 ~/.ssh/signing_key
+
+          # Enable ssh-agent & add signing key
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/signing_key
+
+          # Create allowed_signers file for git
+          if [ "${INPUT_GIT_COMMITTER_EMAIL:="-"}" = "-" ]; then
+                  echo >&2 "git_committer_email must be set to use SSH key signing!"
+                  exit 1
+          fi
+          touch ~/.ssh/allowed_signers
+          echo "$INPUT_GIT_COMMITTER_EMAIL $INPUT_SSH_PUBLIC_SIGNING_KEY" >~/.ssh/allowed_signers
+
+          # Configure git for signing
+          git config gpg.format ssh
+          git config gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
+          git config user.signingKey ~/.ssh/signing_key
+          git config commit.gpgsign true
+          git config tag.gpgsign true
+        fi
+
+        # Copy inputs into correctly-named environment variables
+        export GH_TOKEN="${INPUT_GITHUB_TOKEN}"
+
+        source ~/semantic-release/.venv/bin/activate
+        semantic-release $INPUT_ROOT_OPTIONS version $ARGS
