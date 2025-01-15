@@ -1,7 +1,10 @@
 ---
 name: Python Semantic Release Composite Action
 
-description: Automated Releases via SemVer and Commit Message Conventions
+description: |
+  Automated Releases via SemVer and Commit Message Conventions.
+  Most of this file is copied from PSR official repository:
+  https://github.com/python-semantic-release/python-semantic-release
 
 branding:
   color: orange
@@ -141,7 +144,6 @@ runs:
         INPUT_PSR_VERSION: ${{ inputs.psr_version }}
       run: |
         set -eux
-        env
         if ! command -v python $> /dev/null
         then
           echo "Python not found."
