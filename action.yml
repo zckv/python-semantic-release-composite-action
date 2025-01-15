@@ -146,6 +146,7 @@ runs:
         INPUT_PSR_VERSION: ${{ inputs.psr_version }}
       run: |
         set -eux
+        env
         if ! command -v python $> /dev/null
         then
           echo "Python not found."
