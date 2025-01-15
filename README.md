@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: ./action
+      - uses: zckv/python-semantic-release-composite-action@v1
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
           root_options: -v
