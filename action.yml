@@ -183,27 +183,29 @@ runs:
       run: |
         bool() {
           input="$1"
+          option1="$2"
+          option2="$3"
           if [ -z "$input" ]; then
-            return 0
+            echo ""
           elif [ "$input" = "true" ]; then
-            return 0
+            echo "$option1"
           elif [ "$input" = "false" ]; then
-            return 1
+            echo "$option2"
           else
-            return 1
+            echo "$option1"
           fi
         }
         set -eux
         export ARGS=""
         case $(echo "$INPUT_PSR_VERSION" | cut -d '.' -f1) in
         "9")
-          bool "$INPUT_PRERELEASE" && ARGS+="--as-prerelease " || ARGS+=""
-          bool "$INPUT_COMMIT" && ARGS+="--commit " || ARGS+="--no-commit "
-          bool "$INPUT_TAG" && ARGS+="--tag " || ARGS+="--no-tag "
-          bool "$INPUT_PUSH" && ARGS+="--push " || ARGS+="--no-push "
-          bool "$INPUT_CHANGELOG" && ARGS+="--changelog " || ARGS+="--no-changelog "
-          bool "$INPUT_VCS_RELEASE" && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
-          bool "$INPUT_BUILD" && ARGS+="" || ARGS+="--skip-build "
+          ARGS+="$(bool "$INPUT_PRERELEASE" "--as-prerelease " "")"
+          ARGS+="$(bool "$INPUT_COMMIT" "--commit " "--no-commit ")"
+          ARGS+="$(bool "$INPUT_TAG" "--tag " "--no-tag ")"
+          ARGS+="$(bool "$INPUT_PUSH" "--push " "--no-push ")"
+          ARGS+="$(bool "$INPUT_CHANGELOG" "--changelog " "--no-changelog ")"
+          ARGS+="$(bool "$INPUT_VCS_RELEASE" "--vcs-release " "--no-vcs-release ")"
+          ARGS+="$(bool "$INPUT_BUILD" "" "--skip-build ")"
           force_levels=("prerelease" "patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
@@ -225,11 +227,11 @@ runs:
           fi
           ;;
         "8")
-          bool "$INPUT_PRERELEASE"  && ARGS+="--prerelease " || ARGS+=""
-          bool "$INPUT_COMMIT" && ARGS+="--commit " || ARGS+="--no-commit "
-          bool "$INPUT_PUSH" && ARGS+="--push " || ARGS+="--no-push "
-          bool "$INPUT_CHANGELOG" && ARGS+="--changelog " || ARGS+="--no-changelog "
-          bool "$INPUT_VCS_RELEASE" && ARGS+="--vcs-release " || ARGS+="--no-vcs-release "
+          ARGS+="$(bool "$INPUT_PRERELEASE" "--as-prerelease " "")"
+          ARGS+="$(bool "$INPUT_COMMIT" "--commit " "--no-commit ")"
+          ARGS+="$(bool "$INPUT_PUSH" "--push " "--no-push ")"
+          ARGS+="$(bool "$INPUT_CHANGELOG" "--changelog " "--no-changelog ")"
+          ARGS+="$(bool "$INPUT_VCS_RELEASE" "--vcs-release " "--no-vcs-release ")"
           force_levels=("patch" "minor" "major")
           if [ -z "$INPUT_FORCE" ]; then
             true # do nothing if 'force' input is not set
