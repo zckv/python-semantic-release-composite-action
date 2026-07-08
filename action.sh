@@ -175,7 +175,6 @@ main(){
     # Copy inputs into correctly-named environment variables
     export GH_TOKEN="${INPUT_GITHUB_TOKEN}"
 
-    source ~/semantic-release/.venv/bin/activate
     # shellcheck disable=SC2086
     semantic-release $INPUT_ROOT_OPTIONS version "${ARGS[@]}"
 }
