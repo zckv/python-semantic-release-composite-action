@@ -8,15 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        psr-version: ["8.7.0", "9.21.2", "10.6.1"]
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: ./action
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
@@ -31,4 +28,4 @@ jobs:
           push: false
           changelog: false
           vcs_release: false
-          psr_version: 8.7.0
+          psr_version: ${{ matrix.psr-version }}
