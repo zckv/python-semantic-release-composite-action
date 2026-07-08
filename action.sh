@@ -94,7 +94,7 @@ add_args_from_env_v8(){
 }
 
 detect_version(){
-    read -r version< <(semantic-release --version | cut -d '.' -f1)
+    read -r version< <(semantic-release --version | grep -Po "(?<=version )[0-9]+")
     echo "Semantic-Release version: $version"
 }
 
