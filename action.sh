@@ -1,3 +1,5 @@
+#!/bin/bash
+
 args_bool() {
     input="$1"
     option1="$2"
@@ -18,14 +20,14 @@ add_args_from_env_v10(){
     args_bool "$INPUT_COMMIT" "--commit" "--no-commit"
     args_bool "$INPUT_TAG" "--tag" "--no-tag"
     args_bool "$INPUT_PUSH" "--push" "--no-push"
-    args_bool "$INPUT_TAG" "--tag" "--no-tag"
-    args_bool "$INPUT_PUSH" "--push" "--no-push"
     args_bool "$INPUT_CHANGELOG" "--changelog" "--no-changelog"
+    args_bool "$INPUT_VCS_RELEASE" "--vcs-release" "--no-vcs-release"
+    args_bool "$INPUT_BUILD" "" "--skip-build"
 
     force_levels=("prerelease" "patch" "minor" "major")
     if [ -z "$INPUT_FORCE" ]; then
         : 
-    elif [[ " ${force_level[*]} " == *"$INPUT_FORCE"* ]]; then
+    elif [[ " ${force_levels[*]} " == *"$INPUT_FORCE"* ]]; then
         ARGS+=("--$INPUT_FORCE")
     else
         echo "Error: Input 'force' must be one of: %s" >&2
@@ -33,11 +35,11 @@ add_args_from_env_v10(){
     fi
 
     if [ -n "$INPUT_BUILD_METADATA" ]; then
-        ARGS+=("--build-metadata $INPUT_BUILD_METADATA")
+        ARGS+=("--build-metadata" "$INPUT_BUILD_METADATA")
     fi
 
     if [ -n "$INPUT_PRERELEASE_TOKEN" ]; then
-        ARGS+=("--prerelease-token $INPUT_PRERELEASE_TOKEN")
+        ARGS+=("--prerelease-token" "$INPUT_PRERELEASE_TOKEN")
     fi
 }
 
@@ -53,7 +55,7 @@ add_args_from_env_v9(){
     force_levels=("prerelease" "patch" "minor" "major")
     if [ -z "$INPUT_FORCE" ]; then
         : 
-    elif [[ " ${force_level[*]} " == *"$INPUT_FORCE"* ]]; then
+    elif [[ " ${force_levels[*]} " == *"$INPUT_FORCE"* ]]; then
         ARGS+=("--$INPUT_FORCE")
     else
         echo "Error: Input 'force' must be one of: %s" >&2
@@ -61,11 +63,11 @@ add_args_from_env_v9(){
     fi
 
     if [ -n "$INPUT_BUILD_METADATA" ]; then
-        ARGS+=("--build-metadata $INPUT_BUILD_METADATA")
+        ARGS+=("--build-metadata" "$INPUT_BUILD_METADATA")
     fi
 
     if [ -n "$INPUT_PRERELEASE_TOKEN" ]; then
-        ARGS+=("--prerelease-token $INPUT_PRERELEASE_TOKEN")
+        ARGS+=("--prerelease-token" "$INPUT_PRERELEASE_TOKEN")
     fi
 }
 
@@ -79,7 +81,7 @@ add_args_from_env_v8(){
     force_levels=("patch" "minor" "major")
     if [ -z "$INPUT_FORCE" ]; then
         : 
-    elif [[ " ${force_level[*]} " == *"$INPUT_FORCE"* ]]; then
+    elif [[ " ${force_levels[*]} " == *"$INPUT_FORCE"* ]]; then
         ARGS+=("--$INPUT_FORCE")
     else
         echo "Error: Input 'force' must be one of: %s" >&2
@@ -87,12 +89,12 @@ add_args_from_env_v8(){
     fi
 
     if [ -n "$INPUT_BUILD_METADATA" ]; then
-        ARGS+=("--build-metadata $INPUT_BUILD_METADATA")
+        ARGS+=("--build-metadata" "$INPUT_BUILD_METADATA")
     fi
 }
 
 detect_version(){
-    read version< <(semantic-release --version | cut -d '.' -f1)
+    read -r version< <(semantic-release --version | cut -d '.' -f1)
     echo "Semantic-Release version: $version"
 }
 
@@ -104,11 +106,7 @@ setup_git(){
     if ! [ "${INPUT_GIT_COMMITTER_EMAIL:="-"}" = "-" ]; then
         git config user.email "$INPUT_GIT_COMMITTER_EMAIL"
     fi
-    if (
-        [ "${INPUT_GIT_COMMITTER_NAME:="-"}" != "-" ] &&
-        [ "${INPUT_GIT_COMMITTER_EMAIL:="-"}" != "-" ]
-        );
-    then
+    if [ "${INPUT_GIT_COMMITTER_NAME:="-"}" != "-" ] && [ "${INPUT_GIT_COMMITTER_EMAIL:="-"}" != "-" ]; then
         # Must export this value to the environment for PSR to consume the override
         export GIT_COMMIT_AUTHOR="$INPUT_GIT_COMMITTER_NAME <$INPUT_GIT_COMMITTER_EMAIL>"
     fi
@@ -117,11 +115,7 @@ setup_git(){
     # and https://github.com/actions/runner-images/issues/6775#issuecomment-1410270956
     # git config --system --add safe.directory "*"
 
-    if (
-        [[ -n "$INPUT_SSH_PUBLIC_SIGNING_KEY" &&
-        -n "$INPUT_SSH_PRIVATE_SIGNING_KEY" ]]
-    );
-    then
+    if [[ -n "$INPUT_SSH_PUBLIC_SIGNING_KEY" && -n "$INPUT_SSH_PRIVATE_SIGNING_KEY" ]]; then
         echo "SSH Key pair found, configuring signing..."
 
         # Write keys to disk
@@ -182,6 +176,7 @@ main(){
     export GH_TOKEN="${INPUT_GITHUB_TOKEN}"
 
     source ~/semantic-release/.venv/bin/activate
+    # shellcheck disable=SC2086
     semantic-release $INPUT_ROOT_OPTIONS version "${ARGS[@]}"
 }
 
